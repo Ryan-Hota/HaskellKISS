@@ -19,6 +19,7 @@ import System.FilePath (equalFilePath)
 import qualified System.Directory as D
 import IO (readPermittedFile)
 import Link_IO (mkHardLink)
+import System.Directory (doesPathExist, removePathForcibly)
 
 -- | @\\ dir file ->@\\
 -- make a  __/hard/__  link located in @dir@ that points to the @file@\\
@@ -27,8 +28,11 @@ import Link_IO (mkHardLink)
 mkLinkAt :: (Absolutable pathType0, Absolutable pathType1) => AssuredToBe pathType0 -> AssuredToBe pathType1 -> IO String
 mkLinkAt dir file = 
     ifThenElse
-    <$> doesFileExist (dir</>name) 
-    <*> pure name
+    <$> doesPathExist ( unWrap $ toAbsolute (dir</>name) )
+    <*> unsafeInterleaveIO (
+        removePathForcibly ( unWrap $ toAbsolute (dir</>name) )
+        >> mkLinkAt dir file
+    )
     <*> unsafeInterleaveIO ( 
         mkHardLink (unWrap (toAbsolute file)) (unWrap (toAbsolute (dir</>name)))
         >> pure name
