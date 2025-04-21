@@ -1,4 +1,4 @@
-module BIOS (
+module BIOS_IO (
     main
 ) where
 
@@ -51,7 +51,7 @@ biosModules =
 
 All filePaths are taken relative to @root@, except for @root@ itself
 
-/target/ := the haskell program file concerned
+/target/ := the haskell program file to be compiled
 
 An /options.txt/ file should contain all the options an user wants to be passed to ghc.
 

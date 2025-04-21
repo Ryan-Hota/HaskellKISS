@@ -13,3 +13,5 @@ echo Directory_IO.hs>>%HIE_BIOS_OUTPUT%
 echo Target_IO.hs>>%HIE_BIOS_OUTPUT%
 echo Options.hs>>%HIE_BIOS_OUTPUT%
 echo Modules.hs>>%HIE_BIOS_OUTPUT%
+
+echo BIOS_IO.hs>>%HIE_BIOS_OUTPUT%
