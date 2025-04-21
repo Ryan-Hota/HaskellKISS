@@ -1,0 +1,3 @@
+-Wall
+Lib.hs
+Module.hs

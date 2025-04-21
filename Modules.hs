@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -Wno-missing-fields #-}
 module Modules (
-    modules
+    modules , globalModules
 ) where
 import Directory (FileTree(..), isFile, name, isDirectory)
 import Control.Applicative (liftA2)
@@ -8,7 +8,7 @@ import Data.Char (isUpper)
 import Utilities ((|>), fromMaybe, (||>))
 import System.FilePath (takeExtension)
 import FilePath (RootRelativeFilePath, (</>))
-import Data.List (iterate', find, transpose)
+import Data.List (find, transpose)
 import Nub (nubOrdOn)
 
 (<&&>) :: Applicative f => f Bool -> f Bool -> f Bool
@@ -29,7 +29,7 @@ isModule =
 -- | all modules (with repeated names) in the ancestor directories of target
 localModules :: FileTree RootRelativeFilePath -> [FileTree RootRelativeFilePath]
 localModules =
-    iterate' (listDir|>head)
+    iterate (listDir|>head)
     |> takeWhile isDirectory
     |> reverse
     |> concatMap listDir

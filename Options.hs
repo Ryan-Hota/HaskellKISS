@@ -23,7 +23,7 @@ format =
 options :: FileTree RootRelativeFilePath -> [String]
 options tree =
     tree
-    ||> iterate' (listDir|>head)
+    ||> iterate (listDir|>head)
     |> takeWhile isDirectory
     |> reverse
     |> concatMap listDir

@@ -25,7 +25,7 @@ sendToBiosReceiver lines_ =
 biosOptions :: FileTree RootRelativeFilePath -> IO [String]
 biosOptions =
     Options.options
-    |> filter (head|>(=='-'))
+    |> filter ((&&)<$>(not.null)<*>(head|>(=='-')))
     |> pure
 
 -- clear the previos links made in root
@@ -47,7 +47,7 @@ biosModules =
 
 {- |
 
-@root@ :=  location of hie.yaml config file
+/root/ :=  location of hie.yaml config file
 
 All filePaths are taken relative to @root@, except for @root@ itself
 

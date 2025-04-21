@@ -15,7 +15,7 @@ import FilePath (
 import Utilities ((|>), ifThenElse, (||>))
 import System.IO.Unsafe (unsafeInterleaveIO)
 import Directory (FileTree, FileTree (..))
-import System.FilePath (addTrailingPathSeparator, equalFilePath)
+import System.FilePath (equalFilePath)
 import qualified System.Directory as D
 import IO (readPermittedFile)
 import Link_IO (mkHardLink)
@@ -26,8 +26,13 @@ import Link_IO (mkHardLink)
 -- return the name of the created link
 mkLinkAt :: (Absolutable pathType0, Absolutable pathType1) => AssuredToBe pathType0 -> AssuredToBe pathType1 -> IO String
 mkLinkAt dir file = 
-    mkHardLink (unWrap (toAbsolute file)) (unWrap (toAbsolute (dir</>name))) 
-    >> pure name
+    ifThenElse
+    <$> doesFileExist (dir</>name) 
+    <*> pure name
+    <*> unsafeInterleaveIO ( 
+        mkHardLink (unWrap (toAbsolute file)) (unWrap (toAbsolute (dir</>name)))
+        >> pure name
+    )
     where name = takeName file
 
 doesFileExist :: Absolutable pathType => AssuredToBe pathType -> IO Bool
@@ -47,13 +52,12 @@ fileTreeAlong =
     |> ( \ ( topDir , descendants ) -> fileTreeAlongNamed ( unWrap topDir ) topDir descendants )
 
 fileTreeAlongNamed :: Absolutable pathType => String -> AssuredToBe pathType -> [String] -> IO (FileTree (AssuredToBe pathType))
-fileTreeAlongNamed name path (child:childDescendants) =
-    listPermittedDirectory path
-    >>= filter (not.equalFilePath child)
-    |> mapM ( fileTreeUnderNamed <$> id <*> ( path </> ) )
+fileTreeAlongNamed name_ path (child:childDescendants) =
+    ( listDir <$> fileTreeUnderNamed name_ path )
+    ||> fmap ( filter (name|>(not.equalFilePath child)) )
     ||> unsafeInterleaveIO    
     ||> ( (:) <$> fileTreeAlongNamed child ( path </> child ) childDescendants <*> )
-    ||> fmap ( Directory ( name ||> addTrailingPathSeparator ) path )
+    ||> fmap ( Directory name_ path )
 fileTreeAlongNamed name path [] = fileTreeUnderNamed name path
 
 fileTreeUnder :: Absolutable pathType => AssuredToBe pathType -> IO (FileTree (AssuredToBe pathType))
@@ -72,6 +76,6 @@ fileTreeUnderNamed name path =
             listPermittedDirectory path
             >>= mapM ( fileTreeUnderNamed <$> id <*> ( path </> ) )
             ||> unsafeInterleaveIO
-            ||> fmap ( Directory ( name ||> addTrailingPathSeparator ) path  )
+            ||> fmap ( Directory name path  )
         )
     ||> unsafeInterleaveIO

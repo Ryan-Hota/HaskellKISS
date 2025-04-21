@@ -5,6 +5,8 @@ module Directory (
 ) where
 
 import Data.List (transpose, intercalate)
+import System.FilePath (addTrailingPathSeparator)
+import Utilities ((||>))
 
 -- | A data structure representing the file structure of a directory
 -- The tree can be folded or searched through breadth-first search
@@ -15,9 +17,9 @@ data FileTree t =
 
 instance Show (FileTree a) where
     show :: FileTree a -> String
-    show (File      {name = n}) = n
-    show (Directory {name = n, listDir = l}) =
-        n ++ "\n"
+    show ( File      { name = n } ) = n
+    show ( Directory { name = n, listDir = l } ) =
+        ( n ||> addTrailingPathSeparator ) ++ "\n"
         ++ padUnit ++ "\n"
         ++ unlines ( intercalate [padUnit] $ map ( (pad|++|) . lines . show ) l )
         where
