@@ -1,4 +1,4 @@
-module BIOS_IO (
+module Bios_IO (
     main
 ) where
 
@@ -25,7 +25,7 @@ sendToBiosReceiver lines_ =
 biosOptions :: FileTree RootRelativeFilePath -> IO [String]
 biosOptions =
     Options.options
-    |> filter ((&&)<$>(not.null)<*>(head|>(=='-')))
+    |> filter (take 1|>(=="-"))
     |> pure
 
 -- clear the previos links made in root

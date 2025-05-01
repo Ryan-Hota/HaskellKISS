@@ -1,0 +1,10 @@
+:set prompt ">>> "
+:load "GHCi_IO.hs"
+import FilePath ( makeAbsolute )
+import Target_IO ( takeAsTarget )
+t = takeAsTarget =<< makeAbsolute "workspace\\target.hs"
+import Directory_IO (fileTreeAlong)
+import Target_IO (targetPath)
+f = ( fileTreeAlong . targetPath ) =<< t
+:!cls
+import Modules

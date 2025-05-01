@@ -1,24 +1,29 @@
 module Directory_IO (
     fileTreeAlong,
     doesFileExist,
+    withCurrentDirectory ,
     mkLinkAt,
-    fileTreeUnder
+    fileTreeUnder,
+    getCurrentDirectory
 ) where
 
-import FilePath (
-    (</>),
-    splitPath,
-    unWrap,
-    AssuredToBe, Absolutable (..), takeName
-    )
-    
+import FilePath
+    ( (</>),
+      splitPath,
+      unWrap,
+      AssuredToBe,
+      Absolutable(..),
+      takeName,
+      AbsoluteFilePath,
+      makeAbsolute )
+
 import Utilities ((|>), ifThenElse, (||>))
 import System.IO.Unsafe (unsafeInterleaveIO)
 import Directory (FileTree, FileTree (..))
 import System.FilePath (equalFilePath)
 import qualified System.Directory as D
 import IO (readPermittedFile)
-import Link_IO (mkHardLink)
+import OS_IO (mkHardLink)
 import System.Directory (doesPathExist, removePathForcibly)
 
 -- | @\\ dir file ->@\\
@@ -26,40 +31,46 @@ import System.Directory (doesPathExist, removePathForcibly)
 -- and\\
 -- return the name of the created link
 mkLinkAt :: (Absolutable pathType0, Absolutable pathType1) => AssuredToBe pathType0 -> AssuredToBe pathType1 -> IO String
-mkLinkAt dir file = 
-    ifThenElse
-    <$> doesPathExist ( unWrap $ toAbsolute (dir</>name) )
-    <*> unsafeInterleaveIO (
-        removePathForcibly ( unWrap $ toAbsolute (dir</>name) )
-        >> mkLinkAt dir file
-    )
-    <*> unsafeInterleaveIO ( 
-        mkHardLink (unWrap (toAbsolute file)) (unWrap (toAbsolute (dir</>name)))
-        >> pure name
-    )
+mkLinkAt dir file =
+    doesPathExist ( unWrap (dir</>name) )
+    >>= \ b -> if b
+        then 
+            removePathForcibly ( unWrap (dir</>name) )
+            >> mkLinkAt dir file
+        else 
+            mkHardLink (unWrap file) (unWrap (dir</>name))
+            >> pure name
     where name = takeName file
 
 doesFileExist :: Absolutable pathType => AssuredToBe pathType -> IO Bool
-doesFileExist = toAbsolute |> unWrap |> D.doesFileExist
+doesFileExist = unWrap |> D.doesFileExist
+
+getCurrentDirectory :: IO AbsoluteFilePath
+getCurrentDirectory = makeAbsolute =<< D.getCurrentDirectory
+
+withCurrentDirectory :: Absolutable pathType => AssuredToBe pathType -> IO b -> IO b
+withCurrentDirectory dirPath action = let unWrappedDirPath = unWrap dirPath in
+    D.createDirectoryIfMissing True unWrappedDirPath
+    >> D.withCurrentDirectory unWrappedDirPath action
 
 listPermittedDirectory :: Absolutable pathType => AssuredToBe pathType -> IO [String]
 listPermittedDirectory path = -- pure $ error "check lazy"
-    ifThenElse 
+    ifThenElse
         <$> ( path ||> unWrap |> D.getPermissions |> fmap D.searchable )
-        <*> ( path ||> toAbsolute |> unWrap |> D.listDirectory )
+        <*> ( path ||> unWrap |> D.listDirectory )
         <*> pure []
 
 -- | Given /target/, get the file tree that surrounds the path to /target/
 fileTreeAlong :: Absolutable pathType => AssuredToBe pathType -> IO (FileTree (AssuredToBe pathType))
 fileTreeAlong =
     splitPath
-    |> ( \ ( topDir , descendants ) -> fileTreeAlongNamed ( unWrap topDir ) topDir descendants )
+    |> ( \ ( topDir , descendants ) -> fileTreeAlongNamed ( takeName topDir ) topDir descendants )
 
 fileTreeAlongNamed :: Absolutable pathType => String -> AssuredToBe pathType -> [String] -> IO (FileTree (AssuredToBe pathType))
 fileTreeAlongNamed name_ path (child:childDescendants) =
     ( listDir <$> fileTreeUnderNamed name_ path )
     ||> fmap ( filter (name|>(not.equalFilePath child)) )
-    ||> unsafeInterleaveIO    
+    ||> unsafeInterleaveIO
     ||> ( (:) <$> fileTreeAlongNamed child ( path </> child ) childDescendants <*> )
     ||> fmap ( Directory name_ path )
 fileTreeAlongNamed name path [] = fileTreeUnderNamed name path

@@ -25,8 +25,8 @@ For exmaple, @AssuredToBe Absolute@ is meant to guarantee that the associated @F
 data AssuredToBe pathType = AssuredToBe pathType FilePath deriving Show
 
 -- | extract the associated file path from an object wrapped with the @AssuredToBe@ wrapper
-unWrap :: AssuredToBe pathType -> FilePath
-unWrap (AssuredToBe _ path) = path
+unWrap :: Absolutable pathType => AssuredToBe pathType -> FilePath
+unWrap = toAbsolute |> help where help (AssuredToBe _ path) = path
 
 {- |
 denotes a type of filepath for which

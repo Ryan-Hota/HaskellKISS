@@ -1,6 +1,6 @@
-echo -Wall>%HIE_BIOS_OUTPUT%
+echo -Wall>>%HIE_BIOS_OUTPUT%
 
-echo Link_IO.hs>>%HIE_BIOS_OUTPUT%
+echo OS_IO.hs>>%HIE_BIOS_OUTPUT%
 echo Utilities.hs>>%HIE_BIOS_OUTPUT%
 echo Nub.hs>>%HIE_BIOS_OUTPUT%
 
@@ -14,4 +14,7 @@ echo Target_IO.hs>>%HIE_BIOS_OUTPUT%
 echo Options.hs>>%HIE_BIOS_OUTPUT%
 echo Modules.hs>>%HIE_BIOS_OUTPUT%
 
-echo BIOS_IO.hs>>%HIE_BIOS_OUTPUT%
+echo Shadow_IO.hs>>%HIE_BIOS_OUTPUT%
+
+echo Bios_IO.hs>>%HIE_BIOS_OUTPUT%
+echo GHCi_IO.hs>>%HIE_BIOS_OUTPUT%

@@ -22,14 +22,14 @@ import Data.List (transpose)
 
 data Tree container a = Nil | Node a ( container ( Tree container a ) )
 
-instance Foldable container => Foldable (Tree container) where
+instance Foldable container => Foldable ( Tree container ) where
 
     toList :: Tree container a -> [a]
     toList = concat . levels where
         levels Nil = []
-        levels (Node node children) = [ node ] : ( concat <$> transpose $ levels <$> toList children )
+        levels ( Node node children ) = [ node ] : ( concat <$> transpose $ levels <$> toList children )
 
-    foldr :: Foldable container => (a -> b -> b) -> b -> Tree container a -> b
+    foldr :: Foldable container => ( a -> b -> b ) -> b -> Tree container a -> b
     foldr step base = foldr step base . toList
 
 

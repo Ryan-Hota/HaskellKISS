@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -Wno-missing-fields #-}
 module Modules (
-    modules , globalModules
+    modules , globalModules , localModules
 ) where
 import Directory (FileTree(..), isFile, name, isDirectory)
 import Control.Applicative (liftA2)
@@ -38,9 +38,8 @@ localModules =
 -- | all modules (with repeated names) in the modules directory
 -- globalModules :: IO [FilePath]
 globalModules :: FileTree RootRelativeFilePath -> [FileTree RootRelativeFilePath]
-globalModules tree =
-    tree
-    ||> listDir
+globalModules =
+    listDir
     |> find ((&&)<$>isDirectory<*>name|>(=="globallyEnabledModules"))
     |> fromMaybe defaultGlobalModulesDirectory
     |> breadthFirstSearch
@@ -49,7 +48,6 @@ globalModules tree =
         defaultGlobalModulesDirectory = 
             Directory {
                 name = "globallyEnabledModules",
-                path = path tree</>"globallyEnabledModules",
                 listDir = []
             }
         levels x = [x] : if isFile x then [] else concat <$> transpose $ levels <$> listDir x

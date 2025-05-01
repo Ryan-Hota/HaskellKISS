@@ -10,7 +10,8 @@ module FilePath (
     (</>),
     dropTrailingPathSeparator,
     splitPath,
-    takeName
+    takeName,
+    takeDirectory
 ) where
 
 import FilePath_Internal_IO
@@ -42,10 +43,13 @@ splitPath (AssuredToBe pathType path) =
 dropTrailingPathSeparator :: AssuredToBe pathType -> AssuredToBe pathType
 dropTrailingPathSeparator (AssuredToBe pathType path ) = AssuredToBe pathType $ F.dropTrailingPathSeparator path
 
-takeName :: AssuredToBe pathType -> String
+takeName :: Absolutable pathType => AssuredToBe pathType -> String
 takeName = 
     unWrap
     |> reverse
     |> dropWhile F.isPathSeparator
     |> takeWhile (not.F.isPathSeparator)
     |> reverse
+
+takeDirectory :: AssuredToBe pathType -> AssuredToBe pathType
+takeDirectory ( AssuredToBe pathType path ) = AssuredToBe pathType $ F.takeDirectory path
