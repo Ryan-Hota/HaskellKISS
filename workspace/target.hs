@@ -1,3 +1,4 @@
-import Lib 
+import Lib
 
-main = return ( search ( == 1 ) ) [ 2 , 1 ]
+main :: IO ( Maybe Int )
+main = return $ search ( == 1 ) [ 2 , 1 ]

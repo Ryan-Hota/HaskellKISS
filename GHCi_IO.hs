@@ -9,32 +9,13 @@ import Directory_IO (fileTreeAlong, mkLinkAt, getCurrentDirectory)
 import Target_IO (Target, targetPath)
 import FilePath (unWrap, (</>))
 import Directory (path)
-import System.Process (createProcess, waitForProcess, CreateProcess (..), CmdSpec (..), StdStream (..))
+import System.Process (shell ,createProcess, waitForProcess)
 import Utilities ((|>))
 import Shadow_IO (withShadowOf)
 import Control.Monad (void, forM_)
 import OS_IO ( clearScreenCommand )
 import System.IO (readFile')
 import System.Environment (setEnv, getEnv)
-
-shell :: String -> CreateProcess
-shell str = CreateProcess { 
-    cmdspec = ShellCommand str,
-    cwd = Nothing,
-    env = Nothing,
-    std_in = Inherit,
-    std_out = Inherit,
-    std_err = Inherit,
-    close_fds = False,
-    create_group = False,
-    delegate_ctlc = False,
-    detach_console = False,
-    create_new_console = False,
-    new_session = False,
-    child_group = Nothing,
-    child_user = Nothing,
-    use_process_jobs = False 
-}
 
 ghciOptions :: [String] -> [String]
 ghciOptions = filter (take 1|>(/="-"))
@@ -72,6 +53,6 @@ loadInGHCi target = let mainIO = main target in
             return ( drop 3 ( lines scriptBefore ) == drop 3 ( lines scriptAfter ) )
         return (
             if scriptUnchanged
-                then ":ghci-script " ++ show ( unWrap ( shadowDir </> ".ghci" ) )
+                then ":script " ++ show ( unWrap ( shadowDir </> ".ghci" ) )
                 else ":! ghci -ghci-script " ++ show ( unWrap $ targetPath target ) ++ "\n:quit"
             )
